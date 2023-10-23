@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+
+  wordpress:
+
+    image: wordpress:latest
+
+    restart: always
+
+    ports:
+      - 3000
+
+    expose:
+      - '3000'
+    
+    deploy:
+      replicas: 2
+
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: exampleuser
+      WORDPRESS_DB_PASSWORD: examplepass
+      WORDPRESS_DB_NAME: exampledb
+    
+    # Un service nommé proxy
+  proxy:
+
+    # L'image Docker a utilisé pour le service
+    image: nginx:latest
+
+    # Monter un fichier du répertoire courant de l'hôte
+    # sur le service
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+
+    expose:
+      - '80'
+    
+    # Configurer le port-forwarding entre l'hôte et le service
+    ports:
+      - 8080:80
+
+    # Définir une relation de dépendance
+    # Si my_app n'est pas prêt alors pas de proxy
+    depends_on: 
+      - wordpress
+
+  db:
+
+    image: mysql:5.7
+    
+    restart: always
+    
+    environment:
+      MYSQL_DATABASE: exampledb
+      MYSQL_USER: exampleuser
+      MYSQL_PASSWORD: examplepass
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+
+volumes:
+  wordpress:
+  proxy:
+  db:
+  
